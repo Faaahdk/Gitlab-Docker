@@ -2,7 +2,7 @@
 version: "3.5"
 
 networks: # permet de créer manuellement des réseaux
-    zoo_net:
+    ci_net:
         ipam:
             driver: default # accès vers internet par défaut. None, host, bridge=default)
             config:
@@ -14,20 +14,38 @@ services: # ensemble des applications que nous voulons démarrer
         #=================== CONTENEUR ====================
 
         # permet de télécharger l'image docker sur le serveur : https://hub.docker/com
-        image: gitlab/gitlab-ce:14.0.0-ce.0 # on fixe toujours la version de l'image choisie
+        image: gitlab/gitlab-ce:13.12.5-ce.0 # on fixe toujours la version de l'image choisie
         # nom du service/conteneur affiché dans le terminal avec la commande : docker ps -a
         container_name: td_gitlab
+        restart: unless-stopped # docker va redémarrer le conteneur s'il s'arrête sauf indication contraire de l'administrateur
         #=================== RESEAUX ======================
-        
+        hostname: gitlab.exemple.td # dns du conteneur. Le dns permet de lier un nom à une ip
         networks: # sélection du ou des réseaux dans lequel nous intégrons ce service
-            - zoo_net
+            - ci_net
         # la redirection des ports entre le proxy et le conteneur
-        # exemple : 4443 ==> proxy ==> gitlab:443 ==> logiciel https 
-        # 8080 ==> proxy ==> gitlab:80 ==> logiciel http
-        # 22 ==> proxy ==> gitlab:22 ==> logiciel ssh
+        # exemple : 4443 ==> proxy ==> gitlab.exemple.td:443 ==> logiciel https 
+        # 8080 ==> proxy ==> gitlab.exemple.td:80 ==> logiciel http
+        # 22 ==> proxy ==> gitlab.exemple.td:22 ==> logiciel ssh
         ports: 
             - 4443:443
             - 8080:80
             - 22:22
+
+    db:
+        image: postgres:13.3
+        restart: unless-stopped
+        environment:
+            POSTGRES_USER: root 
+            POSTGRES_PASSWORD: root
+        networks:
+            - ci_net
+
+    adminer:
+        image: adminer:4.8.1
+        restart: unless-stopped
+        ports:
+            - 8000:8080
+        networks:
+            - ci_net
 
     
