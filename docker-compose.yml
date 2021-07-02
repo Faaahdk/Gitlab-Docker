@@ -1,0 +1,33 @@
+# version du fichier et de son vocabulaire
+version: "3.5"
+
+networks: # permet de créer manuellement des réseaux
+    zoo_net:
+        ipam:
+            driver: default # accès vers internet par défaut. None, host, bridge=default)
+            config:
+                - subnet: 10.12.0.0/14 # masque de sous-réseau
+
+services: # ensemble des applications que nous voulons démarrer
+    # nom du service au choix, ici on a choisi "gitlab"
+    gitlab: # Documentation : https://docs.gitlab.com/ee/install/docker.html
+        #=================== CONTENEUR ====================
+
+        # permet de télécharger l'image docker sur le serveur : https://hub.docker/com
+        image: gitlab/gitlab-ce:14.0.0-ce.0 # on fixe toujours la version de l'image choisie
+        # nom du service/conteneur affiché dans le terminal avec la commande : docker ps -a
+        container_name: td_gitlab
+        #=================== RESEAUX ======================
+        
+        networks: # sélection du ou des réseaux dans lequel nous intégrons ce service
+            - zoo_net
+        # la redirection des ports entre le proxy et le conteneur
+        # exemple : 4443 ==> proxy ==> gitlab:443 ==> logiciel https 
+        # 8080 ==> proxy ==> gitlab:80 ==> logiciel http
+        # 22 ==> proxy ==> gitlab:22 ==> logiciel ssh
+        ports: 
+            - 4443:443
+            - 8080:80
+            - 22:22
+
+    
